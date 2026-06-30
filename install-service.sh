@@ -25,6 +25,14 @@ fi
 echo "App directory : $APP_DIR"
 echo "Service user  : $RUN_USER"
 
+# The repo is sometimes cloned/owned by root, which prevents the service user
+# from creating the venv or writing budget.db. Make sure it owns the app dir.
+OWNER="$(stat -c '%U' "$APP_DIR")"
+if [ "$OWNER" != "$RUN_USER" ]; then
+    echo "Fixing ownership: $APP_DIR -> $RUN_USER"
+    chown -R "$RUN_USER":"$RUN_USER" "$APP_DIR"
+fi
+
 # --- 1. Python virtual environment + dependencies ---------------------------
 if ! command -v python3 >/dev/null 2>&1; then
     echo "python3 is required. Install it with: sudo apt install -y python3 python3-venv"
