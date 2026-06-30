@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+budget.db
+*.log
+.venv/
+venv/
+.env

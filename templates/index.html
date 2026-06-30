@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Budget" />
+    <meta name="theme-color" content="#0f1117" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>Budget · Shared Finance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <span class="logo">◈</span>
+                <h1>Budget</h1>
+            </div>
+            <div class="user-switch" id="userSwitch"></div>
+        </header>
+
+        <nav class="tabs" id="tabs">
+            <button class="tab active" data-tab="overview">Overview</button>
+            <button class="tab" data-tab="analytics">Analysis</button>
+            <button class="tab" data-tab="settings">Settings</button>
+        </nav>
+
+        <!-- ============ OVERVIEW ============ -->
+        <section class="view" id="view-overview">
+            <div class="account-bar" id="accountBar"></div>
+            <div class="cards">
+                <div class="card balance">
+                    <span class="card-label">Balance</span>
+                    <span class="card-value" id="balanceValue">—</span>
+                    <span class="card-sub" id="initialSub"></span>
+                </div>
+                <div class="card income">
+                    <span class="card-label">Income</span>
+                    <span class="card-value" id="incomeValue">—</span>
+                </div>
+                <div class="card expense">
+                    <span class="card-label">Expenses</span>
+                    <span class="card-value" id="expenseValue">—</span>
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <section class="panel form-panel">
+                    <h2>Add transaction</h2>
+                    <form id="txForm">
+                        <div class="toggle" id="typeToggle">
+                            <button type="button" class="toggle-btn active" data-type="expense">Expense</button>
+                            <button type="button" class="toggle-btn" data-type="income">Income</button>
+                        </div>
+
+                        <label>Amount
+                            <input type="number" id="amount" step="0.01" min="0.01" placeholder="0.00" required />
+                        </label>
+
+                        <label>Account
+                            <select id="txAccount"></select>
+                        </label>
+
+                        <label>Merchant
+                            <input type="text" id="merchant" placeholder="e.g. Maxi, Wolt, NIS" />
+                        </label>
+
+                        <label>Category
+                            <select id="category"></select>
+                            <small class="hint" id="catHint">Leave on “Auto” to detect from merchant.</small>
+                        </label>
+
+                        <label>Date
+                            <input type="date" id="date" />
+                        </label>
+
+                        <label>Note
+                            <input type="text" id="note" placeholder="Optional" />
+                        </label>
+
+                        <button type="submit" class="submit-btn">Add transaction</button>
+                    </form>
+
+                    <div class="transfer-box">
+                        <h3>Transfer</h3>
+                        <form id="transferForm">
+                            <label>From
+                                <select id="transferFrom"></select>
+                            </label>
+                            <label>To
+                                <select id="transferTo"></select>
+                            </label>
+                            <input type="number" id="transferAmount" step="0.01" min="0.01" placeholder="Amount" required />
+                            <button type="submit" class="ghost-btn">Send money</button>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="panel list-panel">
+                    <div class="list-header">
+                        <h2>Transactions</h2>
+                        <div class="filters" id="filters">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="income">Income</button>
+                            <button class="filter-btn" data-filter="expense">Expenses</button>
+                        </div>
+                    </div>
+                    <ul class="tx-list" id="txList"></ul>
+                    <p class="empty-state" id="emptyState">No transactions yet.</p>
+                </section>
+            </div>
+        </section>
+
+        <!-- ============ ANALYTICS ============ -->
+        <section class="view hidden" id="view-analytics">
+            <div class="period-bar">
+                <button class="period-nav" id="periodPrev" aria-label="Previous month">‹</button>
+                <div class="period-label" id="periodLabel">—</div>
+                <button class="period-nav" id="periodNext" aria-label="Next month">›</button>
+                <button class="period-today" id="periodToday">This month</button>
+            </div>
+
+            <div class="stat-row" id="statRow"></div>
+
+            <div class="main-grid">
+                <section class="panel">
+                    <h2>Spending by category</h2>
+                    <canvas id="categoryChart"></canvas>
+                    <p class="empty-state" id="catEmpty">No spending in this period.</p>
+                    <ul class="cat-legend" id="catLegend"></ul>
+                </section>
+                <section class="panel">
+                    <h2>Daily spending</h2>
+                    <canvas id="dayChart"></canvas>
+                    <h3 class="mt">Top merchants</h3>
+                    <ul class="merchant-list" id="merchantList"></ul>
+                </section>
+                <section class="panel">
+                    <h2>Subcategory breakdown</h2>
+                    <ul class="merchant-list" id="subcategoryList"></ul>
+                </section>
+                <section class="panel">
+                    <h2>6-month trend</h2>
+                    <canvas id="monthChart"></canvas>
+                </section>
+            </div>
+        </section>
+
+        <!-- ============ SETTINGS ============ -->
+        <section class="view hidden" id="view-settings">
+            <div class="main-grid">
+                <section class="panel">
+                    <h2>Users &amp; cards</h2>
+                    <div id="userSettings"></div>
+                    <div class="add-user">
+                        <h3>Add user</h3>
+                        <form id="addUserForm" class="row">
+                            <input type="text" id="newUserName" placeholder="Name" required />
+                            <input type="number" id="newUserBalance" step="0.01" placeholder="Initial balance" />
+                            <button type="submit" class="ghost-btn">Add</button>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>Categories</h2>
+                    <p class="hint">Used across the app. Add your own; delete the ones you don’t need.</p>
+                    <ul class="chip-list" id="categoryChips"></ul>
+                    <form id="addCategoryForm" class="row">
+                        <input type="text" id="newCategory" placeholder="New category" required />
+                        <select id="newCategoryKind">
+                            <option value="expense">Expense</option>
+                            <option value="income">Income</option>
+                        </select>
+                        <button type="submit" class="ghost-btn">Add</button>
+                    </form>
+
+                    <div class="rules-block">
+                        <h3>Auto-category rules</h3>
+                        <p class="hint">When a merchant name contains a keyword, this category is applied automatically.</p>
+                        <ul class="rule-list" id="ruleList"></ul>
+                        <form id="addRuleForm" class="row">
+                            <input type="text" id="ruleKeyword" placeholder="Keyword (e.g. metro)" required />
+                            <select id="ruleCategory"></select>
+                            <input type="text" id="ruleSub" placeholder="Subcat (optional)" />
+                            <button type="submit" class="ghost-btn">Add</button>
+                        </form>
+                    </div>
+
+                    <div class="api-note">
+                        <h3>Apple Wallet endpoint</h3>
+                        <p class="hint">POST card payments here; the card maps to a user and the category is detected automatically.</p>
+                        <pre id="walletExample"></pre>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
