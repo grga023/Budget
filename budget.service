@@ -1,0 +1,28 @@
+# Budget app — systemd service unit (reference template).
+#
+# This file is installed/customized automatically by install-service.sh.
+# To install manually, copy it to /etc/systemd/system/budget.service and
+# replace __USER__ and __DIR__ with your username and the app directory.
+
+[Unit]
+Description=Budget web app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__DIR__
+Environment=BUDGET_HOST=0.0.0.0
+Environment=BUDGET_PORT=5000
+Environment=BUDGET_THREADS=4
+# Set these if you use an LLM categorizer:
+# Environment=LLM_API_KEY=...
+# Environment=LLM_BASE_URL=https://api.groq.com/openai/v1
+# Environment=LLM_MODEL=llama-3.1-8b-instant
+ExecStart=__DIR__/.venv/bin/python __DIR__/serve.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
